@@ -1,18 +1,31 @@
 const { expect } = require("chai");
 
-describe("Greeter", function() {
-  it("Should return the new greeting once it's changed", async function() {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    await greeter.deployed();
+describe("PaymentProcessor", function () {
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
+  before(async function (){
+    [owner, ...addrs] = await ethers.getSigners();
+    PaymentProcesor = await ethers.getContractFactory("PaymentProcessor");
+    Dai = await ethers.getContractFactory("Dai");
+    DaiToken = await Dai.deploy()
+  })
 
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
-    
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
+  beforeEach(async function () {
+    PaymentProcesorContract = await PaymentProcesor.deploy(owner.address, DaiToken.address)
+  })
 
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
-  });
-});
+  it("Should Initialized correctly", async function() {
+    expect(await PaymentProcesorContract.admin()).to.equal(owner.address)
+    expect(await PaymentProcesorContract.dai()).to.equal(DaiToken.address)
+  })
+
+  it("Should make a payment", async function() {
+    await DaiToken.faucet(owner.address,10);
+
+    await DaiToken.approve(owner.address,9)
+
+    await PaymentProcesorContract.pay(8, 1342)
+
+    console.log(PaymentProcessorContract.value)
+  })
+
+})
